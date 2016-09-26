@@ -1,6 +1,7 @@
 #! /usr/bin/env ruby
 
-require "pg"
+require 'pg'
+require 'io/console'
 require 'pry'
 
 class ExpenseData
@@ -26,13 +27,24 @@ class ExpenseData
   end
 
   def delete_expense(id)
-    result = @connection.exec("SELECT * FROM expenses WHERE id = $1", [id])
+    result = @connection.exec_params("SELECT * FROM expenses WHERE id = $1", [id])
     if result.values.empty?
       puts "Id : '#{id}' is not in the databse"
     else
       @connection.exec_params("DELETE from expenses WHERE id = $1", [id])
       puts "The following has been deleted : "
       display_expenses(result)
+    end
+  end
+
+  def delete_all_expenses
+    puts "WARNING : are you sure you want to clear all expenses? [y/n] "
+    response = $stdin.getch
+    if response == 'y'
+      @connection.exec("DELETE FROM expenses")
+      puts "All expenses have been cleared."
+    else
+      abort
     end
   end
 
@@ -66,12 +78,11 @@ class CLI
     when "list"
       @application.list_expenses
     when "search"
-      query = arguments[0]
-      @application.search_expense(query)
+      @application.search_expense(arguments[0])
     when "delete"
-      id = arguments[0]
-      abort "You must provide an id to delete." unless id
-      @application.delete_expense(id)
+      @application.delete_expense(arguments[0])
+    when "clear"
+      @application.delete_all_expenses
     else
       display_help
     end
