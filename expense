@@ -59,6 +59,18 @@ class ExpenseData
 
       puts columns.join(" | ")
     end
+    display_count(expenses)
+    display_amount_total(expenses)
+  end
+
+  def display_count(expenses)
+    puts "Number of expenses : #{expenses.values.length}"
+  end
+
+  def display_amount_total(expenses)
+    total_amount = expenses.inject(0) { |sum, line| sum += line['amount'].to_f }
+    puts '-'*70
+    puts 'Total' + "#{total_amount}".rjust(26)
   end
 end
 
