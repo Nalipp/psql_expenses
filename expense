@@ -7,6 +7,25 @@ require 'pry'
 class ExpenseData
   def initialize
     @connection = PG.connect(dbname: "expenses")
+    setup_schema
+  end
+
+  def setup_schema
+    schema = @connection.exec <<~SQL
+      SELECT COUNT(*) FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = 'expenses';
+    SQL
+
+    if schema.first['count'] == "0"
+      @connection.exec <<~SQL
+        CREATE TABLE expenses (
+         id serial PRIMARY KEY,
+         amount numeric(13,2) NOT NULL CHECK(amount > 0),
+         memo text NOT NULL,
+         created_on date NOT NULL
+       );
+      SQL
+    end
   end
 
   def list_expenses
